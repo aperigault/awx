@@ -1,6 +1,7 @@
 
+
 //console.log = function () { };
-var app = angular.module('triangular', ['monospaced.mousewheel', 'ngTouch']);
+var angular = require('angular');
 var fsm = require('./fsm.js');
 var view = require('./view.js');
 var move = require('./move.js');
@@ -11,18 +12,27 @@ var util = require('./util.js');
 var models = require('./models.js');
 var messages = require('./messages.js');
 var svg_crowbar = require('../vendor/svg-crowbar.js');
+var ReconnectingWebSocket = require('reconnectingwebsocket');
 
-app.controller('MainCtrl', function($scope, $document, $location, $window) {
+var NetworkUIController = function($scope, $document, $location, $window) {
 
   window.scope = $scope;
 
   $scope.api_token = '';
+  $scope.disconnected = false;
 
   $scope.topology_id = $location.search().topology_id || 0;
   // Create a web socket to connect to the backend server
-  $scope.control_socket = new window.ReconnectingWebSocket("ws://" + window.location.host + "/network_ui/topology?topology_id=" + $scope.topology_id,
+
+  if (!$scope.disconnected) {
+  $scope.control_socket = new ReconnectingWebSocket("ws://" + window.location.host + "/network_ui/topology?topology_id=" + $scope.topology_id,
                                                            null,
                                                            {debug: false, reconnectInterval: 300});
+  } else {
+      $scope.control_socket = {
+          on_message: util.noop
+      };
+  }
   $scope.history = [];
   $scope.client_id = 0;
   $scope.onMouseDownResult = "";
@@ -426,7 +436,7 @@ app.controller('MainCtrl', function($scope, $document, $location, $window) {
     $scope.onDiscoverButton = function (button) {
         console.log(button.name);
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://" + window.location.host + "/api/v1/job_templates/12/launch/", true);
+        xhr.open("POST", "http://" + window.location.host + "/api/v1/job_templates/7/launch/", true);
         xhr.onload = function () {
             console.log(xhr.readyState);
         };
@@ -440,7 +450,7 @@ app.controller('MainCtrl', function($scope, $document, $location, $window) {
     $scope.onConfigureButton = function (button) {
         console.log(button.name);
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://" + window.location.host + "/api/v1/job_templates/11/launch/", true);
+        xhr.open("POST", "http://" + window.location.host + "/api/v1/job_templates/9/launch/", true);
         xhr.onload = function () {
             console.log(xhr.readyState);
         };
@@ -674,7 +684,7 @@ app.controller('MainCtrl', function($scope, $document, $location, $window) {
             link = $scope.links[i];
             if (link.id === data.id &&
                 link.from_device.id === data.from_device_id &&
-                link.to_device.id === data.to_device_id && 
+                link.to_device.id === data.to_device_id &&
                 link.to_interface.id === data.to_interface_id &&
                 link.from_interface.id === data.from_interface_id) {
                 link.from_interface.link = null;
@@ -1034,7 +1044,11 @@ app.controller('MainCtrl', function($scope, $document, $location, $window) {
             }
         }
         var data = messages.serialize(message);
-        $scope.control_socket.send(data);
+        if (!$scope.disconnected) {
+            $scope.control_socket.send(data);
+        } else {
+            console.log(data);
+        }
     };
 
 
@@ -1057,68 +1071,7 @@ app.controller('MainCtrl', function($scope, $document, $location, $window) {
         $scope.frame = Math.floor(window.performance.now());
         $scope.$apply();
     }, 17);
-});
 
-app.directive('cursor', function() {
-  return { restrict: 'A', templateUrl: 'widgets/cursor.html' };
-});
+};
 
-app.directive('touch', function() {
-  return { restrict: 'A', templateUrl: 'widgets/touch.html' };
-});
-
-app.directive('debug', function() {
-  return { restrict: 'A', templateUrl: 'widgets/debug.html' };
-});
-
-app.directive('router', function() {
-  return { restrict: 'A', templateUrl: 'widgets/router.html' };
-});
-
-app.directive('switch', function() {
-  return { restrict: 'A', templateUrl: 'widgets/switch.html' };
-});
-
-app.directive('host', function() {
-  return { restrict: 'A', templateUrl: 'widgets/host.html' };
-});
-
-app.directive('link', function() {
-  return { restrict: 'A', templateUrl: 'widgets/link.html' };
-});
-
-app.directive('rack', function() {
-  return { restrict: 'A', templateUrl: 'widgets/rack.html' };
-});
-
-app.directive('default', function() {
-  return { restrict: 'A', templateUrl: 'widgets/default.html' };
-});
-
-app.directive('quadrants', function() {
-  return { restrict: 'A', templateUrl: 'widgets/quadrants.html' };
-});
-
-app.directive('stencil', function() {
-  return { restrict: 'A', templateUrl: 'widgets/stencil.html' };
-});
-
-app.directive('layer', function() {
-  return { restrict: 'A', templateUrl: 'widgets/layer.html' };
-});
-
-app.directive('button', function() {
-  return { restrict: 'A', templateUrl: 'widgets/button.html' };
-});
-
-app.directive('statusLight', function() {
-  return { restrict: 'A', templateUrl: 'widgets/status_light.html' };
-});
-
-app.directive('taskStatus', function() {
-  return { restrict: 'A', templateUrl: 'widgets/task_status.html' };
-});
-
-
-
-exports.app = app;
+exports.NetworkUIController = NetworkUIController;
