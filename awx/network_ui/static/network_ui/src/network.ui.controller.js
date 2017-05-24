@@ -443,7 +443,6 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         xhr.onerror = function () {
             console.error(xhr.statusText);
         };
-        xhr.setRequestHeader('Authorization', 'Token ' + $scope.api_token);
         xhr.send();
     };
 
@@ -457,7 +456,6 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         xhr.onerror = function () {
             console.error(xhr.statusText);
         };
-        xhr.setRequestHeader('Authorization', 'Token ' + $scope.api_token);
         xhr.send();
     };
 
@@ -1072,6 +1070,13 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         $scope.$apply();
     }, 17);
 
+    console.log("Network UI started");
+
+    $scope.$on('$destroy', function () {
+        console.log("Network UI stopping");
+        $document.unbind('keydown', $scope.onKeyDown);
+    });
 };
 
 exports.NetworkUIController = NetworkUIController;
+console.log("Network UI loaded");
