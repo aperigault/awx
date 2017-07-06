@@ -3,9 +3,12 @@
 //console.log = function () { };
 var angular = require('angular');
 var fsm = require('./fsm.js');
+var null_fsm = require('./null.fsm.js');
+var hotkeys = require('./hotkeys.fsm.js');
 var view = require('./view.js');
 var move = require('./move.js');
 var link = require('./link.js');
+var group = require('./group.js');
 var buttons = require('./buttons.js');
 var time = require('./time.js');
 var util = require('./util.js');
@@ -58,11 +61,15 @@ var NetworkUIController = function($scope, $document, $location, $window) {
   $scope.selected_links = [];
   $scope.selected_interfaces = [];
   $scope.selected_items = [];
+  $scope.selected_groups = [];
   $scope.new_link = null;
-  $scope.view_controller = new fsm.FSMController($scope, view.Start, null);
+  $scope.null_controller = new fsm.FSMController($scope, null_fsm.Start, null);
+  $scope.hotkeys_controller = new fsm.FSMController($scope, hotkeys.Start, $scope.null_controller);
+  $scope.view_controller = new fsm.FSMController($scope, view.Start, $scope.hotkeys_controller);
   $scope.move_controller = new fsm.FSMController($scope, move.Start, $scope.view_controller);
   $scope.link_controller = new fsm.FSMController($scope, link.Start, $scope.move_controller);
-  $scope.buttons_controller = new fsm.FSMController($scope, buttons.Start, $scope.link_controller);
+  $scope.group_controller = new fsm.FSMController($scope, group.Start, $scope.link_controller);
+  $scope.buttons_controller = new fsm.FSMController($scope, buttons.Start, $scope.group_controller);
   $scope.time_controller = new fsm.FSMController($scope, time.Start, $scope.buttons_controller);
   $scope.first_controller = $scope.time_controller;
   $scope.last_key = "";
@@ -74,11 +81,13 @@ var NetworkUIController = function($scope, $document, $location, $window) {
   $scope.hide_buttons = false;
   $scope.hide_links = false;
   $scope.hide_interfaces = false;
+  $scope.hide_groups = false;
   $scope.graph = {'width': window.innerWidth,
                   'right_column': window.innerWidth - 300,
                   'height': window.innerHeight};
   $scope.device_id_seq = util.natural_numbers(0);
   $scope.link_id_seq = util.natural_numbers(0);
+  $scope.group_id_seq = util.natural_numbers(0);
   $scope.message_id_seq = util.natural_numbers(0);
   $scope.time_pointer = -1;
   $scope.frame = 0;
@@ -86,19 +95,10 @@ var NetworkUIController = function($scope, $document, $location, $window) {
   $scope.replay = false;
   $scope.touch_data = {};
   $scope.touches = [];
-
-
-  $scope.devices = [
-  ];
-
-  $scope.stencils = [
-    //{"name": "router", "size":50, 'x':10, 'y':100},
-    //{"name": "switch", "size":50, 'x':10, 'y':160},
-    //{"name": "rack", "size":50, 'x':10, 'y':220},
-  ];
-
-  $scope.links = [
-  ];
+  $scope.devices = [];
+  $scope.stencils = [];
+  $scope.links = [];
+  $scope.groups = [];
 
 
 
@@ -122,10 +122,12 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         var j = 0;
         var devices = $scope.devices;
         var links = $scope.links;
+        var groups = $scope.groups;
         $scope.selected_items = [];
         $scope.selected_devices = [];
         $scope.selected_links = [];
         $scope.selected_interfaces = [];
+        $scope.selected_groups = [];
         for (i = 0; i < devices.length; i++) {
             for (j = 0; j < devices[i].interfaces.length; j++) {
                 devices[i].interfaces[j].selected = false;
@@ -140,6 +142,9 @@ var NetworkUIController = function($scope, $document, $location, $window) {
                 $scope.send_control_message(new messages.LinkUnSelected($scope.client_id, links[i].id));
             }
             links[i].selected = false;
+        }
+        for (i = 0; i < groups.length; i++) {
+            groups[i].selected = false;
         }
     };
 
@@ -462,6 +467,15 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         $scope.hide_links = true;
     };
 
+    $scope.onToggleGroup = function () {
+        $scope.hide_groups = false;
+    };
+
+    $scope.onUnToggleGroup = function () {
+        $scope.hide_groups = true;
+        $scope.group_controller.changeState(group.Ready);
+    };
+
     // Buttons
 
     $scope.buttons = [
@@ -474,23 +488,43 @@ var NetworkUIController = function($scope, $document, $location, $window) {
       new models.Button("CONFIGURE", 520, 10, 90, 30, $scope.onConfigureButton)
     ];
 
+    var LAYERS_X = 160;
+
     $scope.layers = [
-      new models.ToggleButton("APPLICATION", $scope.graph.width - 140, 10, 120, 30, util.noop, util.noop, true),
-      new models.ToggleButton("PRESENTATION", $scope.graph.width - 140, 50, 120, 30, util.noop, util.noop, true),
-      new models.ToggleButton("SESSION", $scope.graph.width - 140, 90, 120, 30, util.noop, util.noop, true),
-      new models.ToggleButton("TRANSPORT", $scope.graph.width - 140, 130, 120, 30, util.noop, util.noop, true),
-      new models.ToggleButton("NETWORK", $scope.graph.width - 140, 170, 120, 30, util.noop, util.noop, true),
-      new models.ToggleButton("DATA-LINK", $scope.graph.width - 140, 210, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("APPLICATION", $scope.graph.width - LAYERS_X, 10, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("PRESENTATION", $scope.graph.width - LAYERS_X, 50, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("SESSION", $scope.graph.width - LAYERS_X, 90, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("TRANSPORT", $scope.graph.width - LAYERS_X, 130, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("NETWORK", $scope.graph.width - LAYERS_X, 170, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("DATA-LINK", $scope.graph.width - LAYERS_X, 210, 120, 30, util.noop, util.noop, true),
       new models.ToggleButton("PHYSICAL",
-                              $scope.graph.width - 140, 250, 120, 30,
+                              $scope.graph.width - LAYERS_X, 250, 120, 30,
                               $scope.onTogglePhysical,
                               $scope.onUnTogglePhysical,
+                              true),
+      new models.ToggleButton("GROUP",
+                              $scope.graph.width - LAYERS_X, 290, 120, 30,
+                              $scope.onToggleGroup,
+                              $scope.onUnToggleGroup,
                               true)
+    ];
+
+    var STENCIL_X = 10;
+    var STENCIL_Y = 100;
+    var STENCIL_SPACING = 40;
+
+    $scope.stencils = [
+      new models.Button("Switch", STENCIL_X, STENCIL_Y + STENCIL_SPACING * 0, 70, 30, function () {$scope.first_controller.handle_message("NewDevice", new messages.NewDevice("switch"));}),
+      new models.Button("Router", STENCIL_X, STENCIL_Y + STENCIL_SPACING * 1, 70, 30, function () {$scope.first_controller.handle_message("NewDevice", new messages.NewDevice("router"));}),
+      new models.Button("Host", STENCIL_X, STENCIL_Y + STENCIL_SPACING * 2, 70, 30,  function () {$scope.first_controller.handle_message("NewDevice", new messages.NewDevice("host"));}),
+      new models.Button("Link", STENCIL_X, STENCIL_Y + STENCIL_SPACING * 3, 70, 30, function () { $scope.first_controller.handle_message("NewLink");}),
+      new models.Button("Group", STENCIL_X, STENCIL_Y + STENCIL_SPACING * 4, 70, 30, function () { $scope.first_controller.handle_message("NewGroup");}),
     ];
 
     $scope.all_buttons = [];
     $scope.all_buttons.extend($scope.buttons);
     $scope.all_buttons.extend($scope.layers);
+    $scope.all_buttons.extend($scope.stencils);
 
     $scope.onTaskStatus = function(data) {
         var i = 0;
@@ -664,6 +698,16 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         }
     };
 
+    $scope.forGroup = function(group_id, data, fn) {
+        var i = 0;
+        for (i = 0; i < $scope.groups.length; i++) {
+            if ($scope.groups[i].id === group_id) {
+                fn($scope.groups[i], data);
+                break;
+            }
+        }
+    };
+
     $scope.onDeviceLabelEdit = function(data) {
         $scope.edit_device_label(data);
     };
@@ -832,6 +876,17 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         }
     };
 
+
+    $scope.onGroupLabelEdit = function(data) {
+        $scope.edit_group_label(data);
+    };
+
+    $scope.edit_group_label = function(data) {
+        $scope.forGroup(data.id, data, function(group, data) {
+            group.name = data.name;
+        });
+    };
+
     $scope.redo = function(type_data) {
         var type = type_data[0];
         var data = type_data[1];
@@ -913,6 +968,7 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         $scope.panY = data.panX;
         $scope.current_scale = data.scale;
         $scope.link_id_seq = util.natural_numbers(data.link_id_seq);
+        $scope.group_id_seq = util.natural_numbers(data.group_id_seq);
         $scope.device_id_seq = util.natural_numbers(data.device_id_seq);
         $location.search({topology_id: data.topology_id});
     };
@@ -960,11 +1016,13 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         var new_intf = null;
         var max_device_id = null;
         var max_link_id = null;
+        var max_group_id = null;
         var min_x = null;
         var min_y = null;
         var max_x = null;
         var max_y = null;
         var new_link = null;
+        var new_group = null;
 
         //Build the devices
         for (i = 0; i < data.devices.length; i++) {
@@ -1021,6 +1079,28 @@ var NetworkUIController = function($scope, $document, $location, $window) {
             device_interface_map[link.to_device_id][link.to_interface_id].link = new_link;
         }
 
+        //Build the groups
+        var group = null;
+        for (i = 0; i < data.groups.length; i++) {
+            group = data.groups[i];
+            if (max_group_id === null || group.id > max_group_id) {
+                max_group_id = group.id;
+            }
+            new_group = new models.Group(group.id,
+                                         group.name,
+                                         group.x1,
+                                         group.y1,
+                                         group.x2,
+                                         group.y2,
+                                         false);
+            if (group.members !== undefined) {
+                for (j=0; j < group.members.length; j++) {
+                    new_group.devices.push(device_map[group.members[j]]);
+                }
+            }
+            $scope.groups.push(new_group);
+        }
+
         var diff_x;
         var diff_y;
 
@@ -1051,6 +1131,10 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         //Update the link_id_seq to be greater than all link ids to prevent duplicate ids.
         if (max_link_id !== null) {
             $scope.link_id_seq = util.natural_numbers(max_link_id);
+        }
+        //Update the group_id_seq to be greater than all group ids to prevent duplicate ids.
+        if (max_group_id !== null) {
+            $scope.group_id_seq = util.natural_numbers(max_group_id);
         }
 
         $scope.updateInterfaceDots();
@@ -1108,7 +1192,6 @@ var NetworkUIController = function($scope, $document, $location, $window) {
 	}
 
     $scope.send_control_message = function (message) {
-        console.log(message);
         var i = 0;
         message.sender = $scope.client_id;
         message.message_id = $scope.message_id_seq();
@@ -1118,7 +1201,6 @@ var NetworkUIController = function($scope, $document, $location, $window) {
             }
         }
         var data = messages.serialize(message);
-        console.log(data);
         if (!$scope.disconnected) {
             $scope.control_socket.send(data);
         } else {
