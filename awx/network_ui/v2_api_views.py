@@ -3,60 +3,58 @@ from rest_framework import viewsets
 from awx.network_ui.models import Device
 from awx.network_ui.models import Link
 from awx.network_ui.models import Topology
-from awx.network_ui.models import Client
-from awx.network_ui.models import TopologyHistory
-from awx.network_ui.models import MessageType
 from awx.network_ui.models import Interface
 from awx.network_ui.models import Group
 from awx.network_ui.models import GroupDevice
-from awx.network_ui.models import DataBinding
-from awx.network_ui.models import DataType
-from awx.network_ui.models import DataSheet
 from awx.network_ui.models import Stream
 from awx.network_ui.models import Process
 from awx.network_ui.models import Toolbox
 from awx.network_ui.models import ToolboxItem
-from awx.network_ui.models import FSMTrace
 from awx.network_ui.models import TopologyInventory
-from awx.network_ui.models import EventTrace
-from awx.network_ui.models import Coverage
-from awx.network_ui.models import TopologySnapshot
-from awx.network_ui.models import TestCase
-from awx.network_ui.models import Result
-from awx.network_ui.models import CodeUnderTest
-from awx.network_ui.models import TestResult
 
 from awx.network_ui.v2_api_serializers import DeviceSerializer
 from awx.network_ui.v2_api_serializers import LinkSerializer
 from awx.network_ui.v2_api_serializers import TopologySerializer
-from awx.network_ui.v2_api_serializers import ClientSerializer
-from awx.network_ui.v2_api_serializers import TopologyHistorySerializer
-from awx.network_ui.v2_api_serializers import MessageTypeSerializer
 from awx.network_ui.v2_api_serializers import InterfaceSerializer
 from awx.network_ui.v2_api_serializers import GroupSerializer
 from awx.network_ui.v2_api_serializers import GroupDeviceSerializer
-from awx.network_ui.v2_api_serializers import DataBindingSerializer
-from awx.network_ui.v2_api_serializers import DataTypeSerializer
-from awx.network_ui.v2_api_serializers import DataSheetSerializer
 from awx.network_ui.v2_api_serializers import StreamSerializer
 from awx.network_ui.v2_api_serializers import ProcessSerializer
 from awx.network_ui.v2_api_serializers import ToolboxSerializer
 from awx.network_ui.v2_api_serializers import ToolboxItemSerializer
-from awx.network_ui.v2_api_serializers import FSMTraceSerializer
 from awx.network_ui.v2_api_serializers import TopologyInventorySerializer
-from awx.network_ui.v2_api_serializers import EventTraceSerializer
-from awx.network_ui.v2_api_serializers import CoverageSerializer
-from awx.network_ui.v2_api_serializers import TopologySnapshotSerializer
-from awx.network_ui.v2_api_serializers import TestCaseSerializer
-from awx.network_ui.v2_api_serializers import ResultSerializer
-from awx.network_ui.v2_api_serializers import CodeUnderTestSerializer
-from awx.network_ui.v2_api_serializers import TestResultSerializer
 
 
 class DeviceViewSet(viewsets.ModelViewSet):
 
     queryset = Device.objects.all()
     serializer_class = DeviceSerializer
+    lookup_field = 'host_id'
+
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(DeviceViewSet, self).retrieve(request, *args, **kwargs)
+        return response
+
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(DeviceViewSet, self).list(request, *args, **kwargs)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(DeviceViewSet, self).update(request, *args, **kwargs)
+        return response
+
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(DeviceViewSet, self).create(request, *args, **kwargs)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(DeviceViewSet, self).destroy(request, *args, **kwargs)
+        return response
 
 
 class LinkViewSet(viewsets.ModelViewSet):
@@ -64,29 +62,61 @@ class LinkViewSet(viewsets.ModelViewSet):
     queryset = Link.objects.all()
     serializer_class = LinkSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(LinkViewSet, self).retrieve(request, *args, **kwargs)
+        return response
+
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(LinkViewSet, self).list(request, *args, **kwargs)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(LinkViewSet, self).update(request, *args, **kwargs)
+        return response
+
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(LinkViewSet, self).create(request, *args, **kwargs)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(LinkViewSet, self).destroy(request, *args, **kwargs)
+        return response
+
 
 class TopologyViewSet(viewsets.ModelViewSet):
 
     queryset = Topology.objects.all()
     serializer_class = TopologySerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyViewSet, self).retrieve(request, *args, **kwargs)
+        return response
 
-class ClientViewSet(viewsets.ModelViewSet):
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyViewSet, self).list(request, *args, **kwargs)
+        return response
 
-    queryset = Client.objects.all()
-    serializer_class = ClientSerializer
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyViewSet, self).update(request, *args, **kwargs)
+        return response
 
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyViewSet, self).create(request, *args, **kwargs)
+        return response
 
-class TopologyHistoryViewSet(viewsets.ModelViewSet):
-
-    queryset = TopologyHistory.objects.all()
-    serializer_class = TopologyHistorySerializer
-
-
-class MessageTypeViewSet(viewsets.ModelViewSet):
-
-    queryset = MessageType.objects.all()
-    serializer_class = MessageTypeSerializer
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyViewSet, self).destroy(request, *args, **kwargs)
+        return response
 
 
 class InterfaceViewSet(viewsets.ModelViewSet):
@@ -94,11 +124,61 @@ class InterfaceViewSet(viewsets.ModelViewSet):
     queryset = Interface.objects.all()
     serializer_class = InterfaceSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(InterfaceViewSet, self).retrieve(request, *args, **kwargs)
+        return response
+
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(InterfaceViewSet, self).list(request, *args, **kwargs)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(InterfaceViewSet, self).update(request, *args, **kwargs)
+        return response
+
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(InterfaceViewSet, self).create(request, *args, **kwargs)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(InterfaceViewSet, self).destroy(request, *args, **kwargs)
+        return response
+
 
 class GroupViewSet(viewsets.ModelViewSet):
 
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupViewSet, self).retrieve(request, *args, **kwargs)
+        return response
+
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupViewSet, self).list(request, *args, **kwargs)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupViewSet, self).update(request, *args, **kwargs)
+        return response
+
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupViewSet, self).create(request, *args, **kwargs)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupViewSet, self).destroy(request, *args, **kwargs)
+        return response
 
 
 class GroupDeviceViewSet(viewsets.ModelViewSet):
@@ -106,23 +186,30 @@ class GroupDeviceViewSet(viewsets.ModelViewSet):
     queryset = GroupDevice.objects.all()
     serializer_class = GroupDeviceSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupDeviceViewSet, self).retrieve(request, *args, **kwargs)
+        return response
 
-class DataBindingViewSet(viewsets.ModelViewSet):
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupDeviceViewSet, self).list(request, *args, **kwargs)
+        return response
 
-    queryset = DataBinding.objects.all()
-    serializer_class = DataBindingSerializer
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupDeviceViewSet, self).update(request, *args, **kwargs)
+        return response
 
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupDeviceViewSet, self).create(request, *args, **kwargs)
+        return response
 
-class DataTypeViewSet(viewsets.ModelViewSet):
-
-    queryset = DataType.objects.all()
-    serializer_class = DataTypeSerializer
-
-
-class DataSheetViewSet(viewsets.ModelViewSet):
-
-    queryset = DataSheet.objects.all()
-    serializer_class = DataSheetSerializer
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(GroupDeviceViewSet, self).destroy(request, *args, **kwargs)
+        return response
 
 
 class StreamViewSet(viewsets.ModelViewSet):
@@ -130,11 +217,61 @@ class StreamViewSet(viewsets.ModelViewSet):
     queryset = Stream.objects.all()
     serializer_class = StreamSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(StreamViewSet, self).retrieve(request, *args, **kwargs)
+        return response
+
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(StreamViewSet, self).list(request, *args, **kwargs)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(StreamViewSet, self).update(request, *args, **kwargs)
+        return response
+
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(StreamViewSet, self).create(request, *args, **kwargs)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(StreamViewSet, self).destroy(request, *args, **kwargs)
+        return response
+
 
 class ProcessViewSet(viewsets.ModelViewSet):
 
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ProcessViewSet, self).retrieve(request, *args, **kwargs)
+        return response
+
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ProcessViewSet, self).list(request, *args, **kwargs)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ProcessViewSet, self).update(request, *args, **kwargs)
+        return response
+
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ProcessViewSet, self).create(request, *args, **kwargs)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ProcessViewSet, self).destroy(request, *args, **kwargs)
+        return response
 
 
 class ToolboxViewSet(viewsets.ModelViewSet):
@@ -142,17 +279,61 @@ class ToolboxViewSet(viewsets.ModelViewSet):
     queryset = Toolbox.objects.all()
     serializer_class = ToolboxSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxViewSet, self).retrieve(request, *args, **kwargs)
+        return response
+
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxViewSet, self).list(request, *args, **kwargs)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxViewSet, self).update(request, *args, **kwargs)
+        return response
+
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxViewSet, self).create(request, *args, **kwargs)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxViewSet, self).destroy(request, *args, **kwargs)
+        return response
+
 
 class ToolboxItemViewSet(viewsets.ModelViewSet):
 
     queryset = ToolboxItem.objects.all()
     serializer_class = ToolboxItemSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxItemViewSet, self).retrieve(request, *args, **kwargs)
+        return response
 
-class FSMTraceViewSet(viewsets.ModelViewSet):
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxItemViewSet, self).list(request, *args, **kwargs)
+        return response
 
-    queryset = FSMTrace.objects.all()
-    serializer_class = FSMTraceSerializer
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxItemViewSet, self).update(request, *args, **kwargs)
+        return response
+
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxItemViewSet, self).create(request, *args, **kwargs)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(ToolboxItemViewSet, self).destroy(request, *args, **kwargs)
+        return response
 
 
 class TopologyInventoryViewSet(viewsets.ModelViewSet):
@@ -160,44 +341,27 @@ class TopologyInventoryViewSet(viewsets.ModelViewSet):
     queryset = TopologyInventory.objects.all()
     serializer_class = TopologyInventorySerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyInventoryViewSet, self).retrieve(request, *args, **kwargs)
+        return response
 
-class EventTraceViewSet(viewsets.ModelViewSet):
+    def list(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyInventoryViewSet, self).list(request, *args, **kwargs)
+        return response
 
-    queryset = EventTrace.objects.all()
-    serializer_class = EventTraceSerializer
+    def update(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyInventoryViewSet, self).update(request, *args, **kwargs)
+        return response
 
+    def create(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyInventoryViewSet, self).create(request, *args, **kwargs)
+        return response
 
-class CoverageViewSet(viewsets.ModelViewSet):
-
-    queryset = Coverage.objects.all()
-    serializer_class = CoverageSerializer
-
-
-class TopologySnapshotViewSet(viewsets.ModelViewSet):
-
-    queryset = TopologySnapshot.objects.all()
-    serializer_class = TopologySnapshotSerializer
-
-
-class TestCaseViewSet(viewsets.ModelViewSet):
-
-    queryset = TestCase.objects.all()
-    serializer_class = TestCaseSerializer
-
-
-class ResultViewSet(viewsets.ModelViewSet):
-
-    queryset = Result.objects.all()
-    serializer_class = ResultSerializer
-
-
-class CodeUnderTestViewSet(viewsets.ModelViewSet):
-
-    queryset = CodeUnderTest.objects.all()
-    serializer_class = CodeUnderTestSerializer
-
-
-class TestResultViewSet(viewsets.ModelViewSet):
-
-    queryset = TestResult.objects.all()
-    serializer_class = TestResultSerializer
+    def destroy(self, request, *args, **kwargs):
+        print (args, kwargs)
+        response = super(TopologyInventoryViewSet, self).destroy(request, *args, **kwargs)
+        return response
