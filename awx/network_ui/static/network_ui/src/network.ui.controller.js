@@ -72,6 +72,7 @@ var NetworkUIController = function($scope, $document, $location, $window) {
 
   $scope.debug = {'hidden': true};
   $scope.hide_buttons = false;
+  $scope.hide_links = false;
   $scope.hide_interfaces = false;
   $scope.graph = {'width': window.innerWidth,
                   'right_column': window.innerWidth - 300,
@@ -94,12 +95,6 @@ var NetworkUIController = function($scope, $document, $location, $window) {
     //{"name": "router", "size":50, 'x':10, 'y':100},
     //{"name": "switch", "size":50, 'x':10, 'y':160},
     //{"name": "rack", "size":50, 'x':10, 'y':220},
-  ];
-
-  $scope.layers = [
-    //{"name": "Layer 3", "size":60, 'x':window.innerWidth - 70, 'y':10},
-    //{"name": "Layer 2", "size":60, 'x':window.innerWidth - 70, 'y':80},
-    //{"name": "Layer 1", "size":60, 'x':window.innerWidth - 70, 'y':150},
   ];
 
   $scope.links = [
@@ -459,17 +454,43 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         xhr.send();
     };
 
+    $scope.onTogglePhysical = function () {
+        $scope.hide_links = false;
+    };
+
+    $scope.onUnTogglePhysical = function () {
+        $scope.hide_links = true;
+    };
+
     // Buttons
 
     $scope.buttons = [
-      new models.Button("Deploy", 10, 10, 60, 50, $scope.onDeployButton),
-      new models.Button("Destroy", 80, 10, 60, 50, $scope.onDestroyButton),
-      new models.Button("Record", 150, 10, 60, 50, $scope.onRecordButton),
-      new models.Button("Export", 220, 10, 60, 50, $scope.onExportButton),
-      new models.Button("Discover", 290, 10, 80, 50, $scope.onDiscoverButton),
-      new models.Button("Layout", 380, 10, 60, 50, $scope.onLayoutButton),
-      new models.Button("Configure", 450, 10, 80, 50, $scope.onConfigureButton)
+      new models.Button("DEPLOY", 10, 10, 70, 30, $scope.onDeployButton),
+      new models.Button("DESTROY", 90, 10, 80, 30, $scope.onDestroyButton),
+      new models.Button("RECORD", 180, 10, 80, 30, $scope.onRecordButton),
+      new models.Button("EXPORT", 270, 10, 70, 30, $scope.onExportButton),
+      new models.Button("DISCOVER", 350, 10, 80, 30, $scope.onDiscoverButton),
+      new models.Button("LAYOUT", 440, 10, 70, 30, $scope.onLayoutButton),
+      new models.Button("CONFIGURE", 520, 10, 90, 30, $scope.onConfigureButton)
     ];
+
+    $scope.layers = [
+      new models.ToggleButton("APPLICATION", $scope.graph.width - 140, 10, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("PRESENTATION", $scope.graph.width - 140, 50, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("SESSION", $scope.graph.width - 140, 90, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("TRANSPORT", $scope.graph.width - 140, 130, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("NETWORK", $scope.graph.width - 140, 170, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("DATA-LINK", $scope.graph.width - 140, 210, 120, 30, util.noop, util.noop, true),
+      new models.ToggleButton("PHYSICAL",
+                              $scope.graph.width - 140, 250, 120, 30,
+                              $scope.onTogglePhysical,
+                              $scope.onUnTogglePhysical,
+                              true)
+    ];
+
+    $scope.all_buttons = [];
+    $scope.all_buttons.extend($scope.buttons);
+    $scope.all_buttons.extend($scope.layers);
 
     $scope.onTaskStatus = function(data) {
         var i = 0;
@@ -521,18 +542,42 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         var k = 0;
         var device = null;
         var keys = null;
+        var peers = null;
         var ptm = null;
         var intf = null;
         for (i = 0; i < $scope.devices.length; i++) {
             device = $scope.devices[i];
             if (device.name === data.key) {
-                keys = Object.keys(data.value.ansible_local.ptm);
-                for (j = 0; j < keys.length; j++) {
-                    ptm = data.value.ansible_local.ptm[keys[j]];
-                    for (k = 0; k < device.interfaces.length; k++) {
-                        intf = device.interfaces[k];
-                        if (intf.name === ptm.port) {
-                            intf.link.status = ptm['cbl status'] === 'pass';
+
+                //Check PTM
+                if (data.value.ansible_local !== undefined &&
+                    data.value.ansible_local.ptm !== undefined) {
+                    keys = Object.keys(data.value.ansible_local.ptm);
+                    for (j = 0; j < keys.length; j++) {
+                        ptm = data.value.ansible_local.ptm[keys[j]];
+                        for (k = 0; k < device.interfaces.length; k++) {
+                            intf = device.interfaces[k];
+                            if (intf.name === ptm.port) {
+                                intf.link.status = ptm['cbl status'] === 'pass';
+                            }
+                        }
+                    }
+                }
+
+                //Check LLDP
+                if (data.value.ansible_net_neighbors !== undefined) {
+                    keys = Object.keys(data.value.ansible_net_neighbors);
+                    for (j = 0; j < keys.length; j++) {
+                        peers = data.value.ansible_net_neighbors[keys[j]];
+                        for (k = 0; k < peers.length; k++) {
+                            intf = $scope.getDeviceInterface(device.name, keys[j]);
+                            if (intf !== null && intf.link !== null) {
+                                if (intf.link.to_interface === intf) {
+                                    intf.link.status = ($scope.getDeviceInterface(peers[k].host, peers[k].port) === intf.link.from_interface);
+                                } else {
+                                    intf.link.status = ($scope.getDeviceInterface(peers[k].host, peers[k].port) === intf.link.to_interface);
+                                }
+                            }
                         }
                     }
                 }
@@ -540,6 +585,34 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         }
 
         $scope.$apply();
+    };
+
+    $scope.getDevice = function(name) {
+
+        var i = 0;
+        for (i = 0; i < $scope.devices.length; i++) {
+            if ($scope.devices[i].name === name) {
+                return $scope.devices[i];
+            }
+        }
+
+        return null;
+    };
+
+    $scope.getDeviceInterface = function(device_name, interface_name) {
+
+        var i = 0;
+        var k = 0;
+        for (i = 0; i < $scope.devices.length; i++) {
+            if ($scope.devices[i].name === device_name) {
+                for (k = 0; k < $scope.devices[i].interfaces.length; k++) {
+                    if ($scope.devices[i].interfaces[k].name === interface_name) {
+                        return $scope.devices[i].interfaces[k];
+                    }
+                }
+            }
+        }
+        return null;
     };
 
     $scope.onDeviceCreate = function(data) {
@@ -1033,6 +1106,7 @@ var NetworkUIController = function($scope, $document, $location, $window) {
 	}
 
     $scope.send_control_message = function (message) {
+        console.log(message);
         var i = 0;
         message.sender = $scope.client_id;
         message.message_id = $scope.message_id_seq();
@@ -1042,6 +1116,7 @@ var NetworkUIController = function($scope, $document, $location, $window) {
             }
         }
         var data = messages.serialize(message);
+        console.log(data);
         if (!$scope.disconnected) {
             $scope.control_socket.send(data);
         } else {
@@ -1058,6 +1133,8 @@ var NetworkUIController = function($scope, $document, $location, $window) {
 		$scope.graph.width = $window.innerWidth;
 	  	$scope.graph.right_column = $window.innerWidth - 300;
 	  	$scope.graph.height = $window.innerHeight;
+
+        $scope.update_size();
 
 		// manuall $digest required as resize event
 		// is outside of angular
@@ -1076,6 +1153,13 @@ var NetworkUIController = function($scope, $document, $location, $window) {
         console.log("Network UI stopping");
         $document.unbind('keydown', $scope.onKeyDown);
     });
+
+    $scope.update_size = function () {
+        var i = 0;
+        for (i = 0; i < $scope.layers.length; i++) {
+            $scope.layers[i].x = $scope.graph.width - 140;
+        }
+    };
 };
 
 exports.NetworkUIController = NetworkUIController;
