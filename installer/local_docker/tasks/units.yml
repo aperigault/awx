@@ -1,0 +1,73 @@
+---
+- name: Create AWX docker network
+  docker_network:
+    name: awx_network
+
+- name: Create postgres container unit file
+  template:
+    src: docker-postgres.service.j2
+    dest: /etc/systemd/system/docker-postgres.service
+  notify: Reload systemd
+  when: pg_hostname is not defined or pg_hostname == ''
+
+- name: Force handlers
+  meta: flush_handlers
+
+- name: Activate postgres container
+  service:
+    name: docker-postgres.service
+    enabled: yes
+    state: started
+  when: pg_hostname is not defined or pg_hostname == ''
+  register: postgres_container_activate
+
+- name: Create rabbitmq and memcached container unit files
+  template:
+    src: docker-{{ item }}.service.j2
+    dest: /etc/systemd/system/docker-{{ item }}.service
+  notify: Reload systemd
+  with_items:
+    - rabbitmq
+    - memcached
+
+- name: Force handlers
+  meta: flush_handlers
+
+- name: Activate rabbitmq container
+  service:
+    name: docker-rabbitmq.service
+    enabled: yes
+    state: started
+  register: rabbitmq_container_activate
+
+- name: Activate memcached container
+  service:
+    name: docker-memcached.service
+    enabled: yes
+    state: started
+
+- name: Wait for postgres and rabbitmq to activate
+  pause:
+    seconds: 15
+  when: postgres_container_activate.changed or rabbitmq_container_activate.changed
+
+- name: Create AWX containers unit files
+  template:
+    src: awx-{{ item }}.service.j2
+    dest: /etc/systemd/system/awx-{{ item }}.service
+  notify: Reload systemd
+  with_items:
+    - web
+    - task
+
+- name: Force handlers
+  meta: flush_handlers
+
+- name: Activate AWX containers
+  service:
+    name: awx-{{ item }}.service
+    enabled: yes
+    state: started
+  with_items:
+    - web
+    - task
